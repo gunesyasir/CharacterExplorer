@@ -3,8 +3,8 @@ import React, {FC, useEffect, useState} from 'react';
 import {RootStackParamList, Screens} from '../../navigation/Screens';
 import {FlatList, SafeAreaView, Text, TextInput, View} from 'react-native';
 import styles from './styles';
-import {sendRequest, SUFFIX_EPISODE} from '../../network/RequestManager';
-import {EpisodeResult} from '../../network/Responses';
+import {sendRequest, EndpointSuffixes} from '../../network/RequestManager';
+import {CharacterResult, EpisodeResult} from '../../network/Responses';
 import EpisodeCard from '../../components/EpisodeCard';
 import LoadingIndicator from '../../components/LoadingIndicator';
 
@@ -19,7 +19,7 @@ const Home: FC<Props> = ({navigation}) => {
   const [showLoading, setShowLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    _sendRequest();
+    _sendRequest(EndpointSuffixes.EPISODE);
   }, [pageNo]);
 
   useEffect(() => {
@@ -30,8 +30,24 @@ const Home: FC<Props> = ({navigation}) => {
     );
   }, [searchText]);
 
-  const onEpisodePress = (index: number) => {
-    navigation.navigate(Screens.Episode);
+  const onEpisodePress = (item: EpisodeResult) => {
+    let idArray: string[] = [];
+
+    if (item.characters.length > 0) {
+      item.characters.forEach(characterAdresses => {
+        if (characterAdresses.split('/').pop()) {
+          idArray.push(characterAdresses.split('/').pop()!);
+        }
+      });
+    }
+
+    _sendRequest(
+      EndpointSuffixes.CHARACTER,
+      idArray.join(',').toString(),
+      characters => {
+        navigation.navigate(Screens.Episode, {characters: characters});
+      },
+    );
   };
 
   const onReachedEnd = () => {
@@ -68,18 +84,28 @@ const Home: FC<Props> = ({navigation}) => {
     );
   };
 
-  const _sendRequest = async () => {
+  const _sendRequest = async (
+    endpointSuffix: EndpointSuffixes,
+    idSuffix?: string,
+    onCompleted?: (results: CharacterResult[]) => void,
+  ) => {
     setShowLoading(true);
 
-    sendRequest(SUFFIX_EPISODE, pageNo).then(response => {
-      setShowLoading(false);
+    sendRequest(endpointSuffix, idSuffix ? undefined : pageNo, idSuffix).then(
+      response => {
+        setShowLoading(false);
 
-      response.results.map(element => {
-        setEpisodes(prevList => [...prevList, element]);
-      });
+        if (idSuffix) {
+          onCompleted?.(response);
+        } else {
+          response.results.map(element => {
+            setEpisodes(prevList => [...prevList, element]);
+          });
 
-      setHasNextPage(response.info.next ?? false);
-    });
+          setHasNextPage(response.info.next ?? false);
+        }
+      },
+    );
   };
 
   return (
@@ -87,8 +113,8 @@ const Home: FC<Props> = ({navigation}) => {
       {renderSearchBar()}
       <FlatList
         data={searchText.length > 0 ? filteredEpisodes : episodes}
-        renderItem={({item, index}) => (
-          <EpisodeCard item={item} onPress={() => onEpisodePress(index)} />
+        renderItem={({item}) => (
+          <EpisodeCard item={item} onPress={() => onEpisodePress(item)} />
         )}
         keyExtractor={(_, index) => index.toString()}
         showsVerticalScrollIndicator={false}
