@@ -2,8 +2,11 @@ import {StyleSheet} from 'react-native';
 
 export default StyleSheet.create({
   addToFavoriteButton: {
-    padding: 4,
-    marginBottom: -4,
+    height: 24,
+    width: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 4,
   },
 
   addToFavoriteText: {
@@ -52,7 +55,6 @@ export default StyleSheet.create({
 
   statusContainer: {
     borderRadius: 6,
-    alignSelf: 'baseline',
   },
 
   textContainer: {

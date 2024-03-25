@@ -1,12 +1,22 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {FC, useEffect, useState} from 'react';
 import {RootStackParamList, Screens} from '../../navigation/Screens';
-import {FlatList, SafeAreaView, Text, TextInput, View} from 'react-native';
+import {
+  FlatList,
+  SafeAreaView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import styles from './styles';
 import {sendRequest, EndpointSuffixes} from '../../network/RequestManager';
 import {CharacterResult, EpisodeResult} from '../../network/Responses';
 import EpisodeCard from '../../components/EpisodeCard';
 import LoadingIndicator from '../../components/LoadingIndicator';
+import {useDispatch} from 'react-redux';
+import {setFavorites} from '../../redux/reducers/rootReducer';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Props = NativeStackScreenProps<RootStackParamList, Screens.Home>;
 
@@ -17,6 +27,11 @@ const Home: FC<Props> = ({navigation}) => {
   const [pageNo, setPageNo] = useState<number>(1);
   const [searchText, setSearchText] = useState<string>('');
   const [showLoading, setShowLoading] = useState<boolean>(false);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    _setFavorites();
+  }, []);
 
   useEffect(() => {
     _sendRequest(EndpointSuffixes.EPISODE);
@@ -84,6 +99,19 @@ const Home: FC<Props> = ({navigation}) => {
     );
   };
 
+  const renderUpperMenu = () => {
+    return (
+      <View style={styles.upperContainer}>
+        <Text style={styles.upperText}>CharacterExplorer</Text>
+        <TouchableOpacity
+          style={styles.favoritesButton}
+          onPress={() => navigation.navigate(Screens.Favorites)}>
+          <Text style={styles.favoritesText}>Favorites</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   const _sendRequest = async (
     endpointSuffix: EndpointSuffixes,
     idSuffix?: string,
@@ -108,9 +136,21 @@ const Home: FC<Props> = ({navigation}) => {
     );
   };
 
+  const _setFavorites = async () => {
+    const favorites = await AsyncStorage.getItem('favorites');
+    if (favorites) {
+      const parsedFavorites = JSON.parse(favorites);
+
+      dispatch(setFavorites(parsedFavorites));
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
+      {renderUpperMenu()}
+
       {renderSearchBar()}
+
       <FlatList
         data={searchText.length > 0 ? filteredEpisodes : episodes}
         renderItem={({item}) => (

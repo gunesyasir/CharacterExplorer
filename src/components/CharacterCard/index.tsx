@@ -6,9 +6,10 @@ import styles from './styles';
 type Props = {
   item: CharacterResult;
   onFavoritePress: () => void;
+  isFavorited: boolean;
 };
 
-const EpisodeCard: FC<Props> = ({item, onFavoritePress}) => {
+const EpisodeCard: FC<Props> = ({item, onFavoritePress, isFavorited}) => {
   return (
     <View style={styles.cardContainer}>
       <Image source={{uri: item.image}} style={styles.image} />
@@ -25,9 +26,12 @@ const EpisodeCard: FC<Props> = ({item, onFavoritePress}) => {
           </View>
 
           <TouchableOpacity
-            style={styles.addToFavoriteButton}
+            style={[
+              styles.addToFavoriteButton,
+              isFavorited && {backgroundColor: 'green'},
+            ]}
             onPress={() => onFavoritePress()}>
-            <Text style={styles.addToFavoriteText}>+</Text>
+            <Text style={styles.status}>+</Text>
           </TouchableOpacity>
         </View>
       </View>

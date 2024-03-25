@@ -17,6 +17,16 @@ export default StyleSheet.create({
     height: 1,
   },
 
+  favoritesButton: {
+    backgroundColor: '#E6E8EB',
+    padding: 4,
+    marginHorizontal: 16,
+  },
+
+  favoritesText: {
+    fontSize: 19,
+  },
+
   noResults: {
     fontSize: 22,
   },
@@ -41,5 +51,20 @@ export default StyleSheet.create({
     marginStart: 12,
     fontSize: 14,
     color: 'black',
+  },
+
+  upperContainer: {
+    height: 72,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#78808D',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  upperText: {
+    fontSize: 19,
+    marginHorizontal: 16,
   },
 });
